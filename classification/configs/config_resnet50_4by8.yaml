@@ -1,6 +1,7 @@
 TRAIN:
     model: resnet50
     N: 4
+    P: 0
     M: 8
     sparse_optimizer: 1
 
