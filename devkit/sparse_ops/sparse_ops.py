@@ -19,20 +19,36 @@ class Sparse(autograd.Function):
 
         weight_temp = weight.detach().abs().reshape(group, M)
         index = torch.argsort(weight_temp, dim=1)[:, :int(M-N)]
+        F_indexes= index[:, :int(M-P)]
 
-        w_b = torch.ones(weight_temp.shape, device=weight_temp.device)
-        w_b = w_b.scatter_(dim=1, index=index, value=0).reshape(weight.shape)
-        ctx.mask = w_b
+
+
+        w_f = torch.ones(weight_temp.shape, device=weight_temp.device)
+        w_f = w_f.scatter_(dim=1, index=F_indexes, value=0).reshape(weight.shape)
+
+        if P > 0:
+            P2_indexes= index[:, int(M-P):]
+            w_p = torch.ones(weight_temp.shape, device=weight_temp.device)
+            w_p = w_f.scatter_(dim=1, index=P2_indexes, value=0).reshape(weight.shape)
+
+            ctx.mask = w_f + w_p
+            tmp1 = output*w_f
+            tmp2 = round_to_power_of_2(output*w_p)
+            w_out = tmp1 + tmp2
+        else:
+            ctx.mask = w_f
+            w_out = output*w_f
+
         ctx.decay = decay
 
-        return output*w_b
+        return w_out
 
 
     @staticmethod
     def backward(ctx, grad_output):
 
         weight, = ctx.saved_tensors
-        return grad_output + ctx.decay * (1-ctx.mask) * weight, None, None
+        return grad_output + ctx.decay * (1-ctx.mask) * weight, None, None, None
 
 
 def round_to_power_of_2(w):
@@ -78,7 +94,7 @@ class Sparse_NHWC(autograd.Function):
     @staticmethod
     def backward(ctx, grad_output):
         weight, = ctx.saved_tensors
-        return grad_output + ctx.decay * (1-ctx.mask) * weight, None, None
+        return grad_output + ctx.decay * (1-ctx.mask) * weight, None, None, None
 
 class SparseConv(nn.Conv2d):
     """" implement N:M sparse convolution layer """

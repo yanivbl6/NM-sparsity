@@ -27,13 +27,13 @@ def conv3x3(in_planes, out_planes, stride=1, N=2, P=0, M=4):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, planes, stride=1, downsample=None, N=2, M=4):
+    def __init__(self, inplanes, planes, stride=1, downsample=None, N=2, P =0, M=4):
         super(BasicBlock, self).__init__()
 
-        self.conv1 = conv3x3(inplanes, planes, stride, N=N, P=, M=M)
+        self.conv1 = conv3x3(inplanes, planes, stride, N=N, P=P, M=M)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes, N=N, P=, M=M)
+        self.conv2 = conv3x3(planes, planes, N=N, P=P, M=M)
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride

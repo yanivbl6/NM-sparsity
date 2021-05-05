@@ -1,7 +1,7 @@
 TRAIN:
-    model: resnet50
-    N: 4
-    P: 0
+    model: resnet18
+    N: 2
+    P: 4
     M: 8
     sparse_optimizer: 1
 
@@ -20,7 +20,7 @@ TRAIN:
 
 
     print_freq: 100
-    model_dir: checkpoint/resnet50_4by8
+    model_dir: checkpoint/resnet18_2_4by8
 
     train_root: /home/ehoffer/Datasets/imagenet/train
     val_root: /home/ehoffer/Datasets/imagenet/val

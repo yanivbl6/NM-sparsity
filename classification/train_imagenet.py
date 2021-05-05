@@ -20,7 +20,7 @@ from devkit.core import (init_dist, broadcast_params, average_gradients, load_st
 from devkit.dataset.imagenet_dataset import ColorAugmentation, ImagenetDataset
 
 
-
+import torchvision.datasets as datasets
 
 
 parser = argparse.ArgumentParser(
@@ -89,9 +89,8 @@ def main():
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
-    train_dataset = ImagenetDataset(
+    train_dataset = datasets.ImageFolder(
         args.train_root,
-        args.train_source,
         transforms.Compose([
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
@@ -99,9 +98,8 @@ def main():
             ColorAugmentation(),
             normalize,
         ]))
-    val_dataset = ImagenetDataset(
+    val_dataset = datasets.ImageFolder(
         args.val_root,
-        args.val_source,
         transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
@@ -230,8 +228,8 @@ def validate(val_loader, model, criterion, epoch, writer):
         end = time.time()
         for i, (input, target) in enumerate(val_loader):
             target = target.cuda(non_blocking=True)
-            input_var = torch.autograd.Variable(input.cuda(), volatile=True)
-            target_var = torch.autograd.Variable(target, volatile=True)
+            input_var = torch.autograd.Variable(input.cuda())
+            target_var = torch.autograd.Variable(target)
 
             # compute output
             output = model(input_var)
