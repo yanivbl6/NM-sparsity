@@ -19,7 +19,7 @@ class Sparse(autograd.Function):
 
         weight_temp = weight.detach().abs().reshape(group, M)
         index = torch.argsort(weight_temp, dim=1)[:, :int(M-N)]
-        F_indexes= index[:, :int(M-P)]
+        F_indexes= index[:, :int(M-N-P)]
 
 
 
@@ -27,7 +27,7 @@ class Sparse(autograd.Function):
         w_f = w_f.scatter_(dim=1, index=F_indexes, value=0).reshape(weight.shape)
 
         if P > 0:
-            P2_indexes= index[:, int(M-P):]
+            P2_indexes= index[:, int(M-N-P):]
             w_p = torch.ones(weight_temp.shape, device=weight_temp.device)
             w_p = w_f.scatter_(dim=1, index=P2_indexes, value=0).reshape(weight.shape)
 

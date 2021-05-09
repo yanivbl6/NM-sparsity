@@ -20,7 +20,7 @@ TRAIN:
 
 
     print_freq: 100
-    model_dir: checkpoint/resnet50_2_4by8
+    model_dir: checkpoint/resnet50_2_2by8
 
     train_root: /home/ehoffer/Datasets/imagenet/train
     val_root: /home/ehoffer/Datasets/imagenet/val
