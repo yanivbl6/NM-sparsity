@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from itertools import repeat
 from torch._six import container_abcs
-
+import numpy as np
 
 class Sparse(autograd.Function):
     """" Prune the unimprotant weight for the forwards phase but pass the gradient to dense weight using SR-STE in the backwards phase"""
@@ -67,7 +67,7 @@ class Sparse_NHWC(autograd.Function):
 
         weight_temp = weight.detach().abs().permute(0,2,3,1).reshape(group, M)
         index = torch.argsort(weight_temp, dim=1)[:, :int(M-N)]
-        F_indexes= index[:, :int(M-P)]
+        F_indexes= index[:, :int(M-N-P)]
 
         w_f = torch.ones(weight_temp.shape, device=weight_temp.device)
         w_f = w_f.scatter_(dim=1, index=F_indexes, value=0).reshape(weight.permute(0,2,3,1).shape)
@@ -76,7 +76,7 @@ class Sparse_NHWC(autograd.Function):
         ctx.decay = decay
 
         if P > 0:
-            P2_indexes= index[:, int(M-P):]
+            P2_indexes= index[:, int(M-N-P):]
             w_p = torch.ones(weight_temp.shape, device=weight_temp.device)
             w_p = w_p.scatter_(dim=1, index=P2_indexes, value=0).reshape(weight.permute(0,2,3,1).shape)
             w_p = w_p.permute(0,3,1,2)
