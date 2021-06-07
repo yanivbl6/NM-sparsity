@@ -21,8 +21,6 @@ class Sparse(autograd.Function):
         index = torch.argsort(weight_temp, dim=1)[:, :int(M-N)]
         F_indexes= index[:, :int(M-N-P)]
 
-
-
         w_f = torch.ones(weight_temp.shape, device=weight_temp.device)
         w_f = w_f.scatter_(dim=1, index=F_indexes, value=0).reshape(weight.shape)
 
@@ -73,6 +71,7 @@ class Sparse_NHWC(autograd.Function):
         w_f = w_f.scatter_(dim=1, index=F_indexes, value=0).reshape(weight.permute(0,2,3,1).shape)
         w_f = w_f.permute(0,3,1,2)
 
+
         ctx.decay = decay
 
         if P > 0:
@@ -82,11 +81,14 @@ class Sparse_NHWC(autograd.Function):
             w_p = w_p.permute(0,3,1,2)
 
             ctx.mask = w_f + w_p
-            tmp1 = output*w_f
-            tmp2 = round_to_power_of_2(output*w_p)
-            w_out = tmp1 + tmp2
+            full_representation = output*w_f
+            pow2e = round_to_power_of_2(output*w_p)
+            w_out = full_representation + pow2e
+            ctx.mask2 = w_p
         else:
             ctx.mask = w_f
+            ctx.mask2 = 0
+
             w_out = output*w_f
 
         return w_out
@@ -94,7 +96,7 @@ class Sparse_NHWC(autograd.Function):
     @staticmethod
     def backward(ctx, grad_output):
         weight, = ctx.saved_tensors
-        return grad_output + ctx.decay * (1-ctx.mask) * weight, None, None, None
+        return grad_output * (1 + ctx.mask2) + ctx.decay * (1-ctx.mask) * weight, None, None, None
 
 class SparseConv(nn.Conv2d):
     """" implement N:M sparse convolution layer """
@@ -104,7 +106,7 @@ class SparseConv(nn.Conv2d):
         self.M = M
         self.P = P
         super(SparseConv, self).__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode, **kwargs)
-
+        print("Initializing SparseConv V4 With N = %d, P = %d , F = %d Structure" % (N,P,M-N-P))
 
     def get_sparse_weights(self):
 

@@ -139,13 +139,15 @@ def main():
             # remember best prec@1 and save checkpoint
             is_best = prec1 > best_prec1
             best_prec1 = max(prec1, best_prec1)
-            save_checkpoint(model_dir, {
-                'epoch': epoch + 1,
-                'model': args.model,
-                'state_dict': model.state_dict(),
-                'best_prec1': best_prec1,
-                'optimizer': optimizer.state_dict(),
-            }, is_best)
+
+            if epoch % 5==0:
+                save_checkpoint(model_dir, {
+                    'epoch': epoch + 1,
+                    'model': args.model,
+                    'state_dict': model.state_dict(),
+                    'best_prec1': best_prec1,
+                    'optimizer': optimizer.state_dict(),
+                }, is_best)
 
 def train(train_loader, model, criterion, optimizer, lr_scheduler, epoch, writer):
     batch_time = AverageMeter()
@@ -207,6 +209,7 @@ def train(train_loader, model, criterion, optimizer, lr_scheduler, epoch, writer
                 epoch, i, len(train_loader), batch_time=batch_time,
                 data_time=data_time, loss=losses, top1=top1, top5=top5))
             niter = epoch * len(train_loader) + i
+
             writer.add_scalar('learning_rate', optimizer.param_groups[0]['lr'], niter)
             writer.add_scalar('Train/Avg_Loss', losses.avg, niter)
             writer.add_scalar('Train/Avg_Top1', top1.avg / 100.0, niter)
